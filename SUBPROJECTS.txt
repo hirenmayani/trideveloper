@@ -1,0 +1,6 @@
+tririga-client:
+
+This is a client factory for the TRIRIGA APIs (both BusinessConnect and API1).
+It also provides a rudimentary API for downloading documents from the Document
+Manager.
+
