@@ -2,7 +2,10 @@ DESCRIPTION
 
 This is a client factory for the TRIRIGA APIs (both BusinessConnect and API1).
 It also provides a rudimentary API for downloading documents from the Document
-Manager.
+Manager.  This library builds the TRIRIGA client stubs under the
+"com.trideveloper.tririga.*" package namespace to avoid classloader conflicts
+with the existing TRIRIGA stubs (if the library is used in a custom
+task or otherwise under the same classloader as the TRIRIGA application).
 
 The client factory provides a fail-fast factory for API clients.  All clients
 obtained from the factory (for a given server/user) share the same application
