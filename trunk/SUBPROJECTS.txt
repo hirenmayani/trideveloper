@@ -4,3 +4,9 @@ This is a client factory for the TRIRIGA APIs (both BusinessConnect and API1).
 It also provides a rudimentary API for downloading documents from the Document
 Manager.
 
+
+etl-job:
+
+This is a small application and supporting custom workflow task which allows
+TRIRIGA to execute Pentaho Data Integration (Kettle) based ETL jobs and
+transformations on a scheduled or on-demand basis. 
