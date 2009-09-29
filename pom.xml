@@ -8,5 +8,6 @@
     <url>http://maven.apache.org</url>
     <modules>
         <module>tririga-client</module>
+        <module>etl-job</module>
     </modules>
 </project>
