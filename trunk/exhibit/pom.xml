@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>trideveloper</groupId>
-    <artifactId>trideveloper</artifactId>
+    <artifactId>exhibit</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
-    <name>trideveloper</name>
+    <name>exhibit</name>
     <url>http://maven.apache.org</url>
     <modules>
-        <module>tririga-client</module>
-        <module>etl-job</module>
-        <module>exhibit</module>
+        <module>exhibit-engine</module>
+        <module>exhibit-servlet</module>
+        <module>exhibit-web</module>
     </modules>
 </project>
