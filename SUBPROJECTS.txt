@@ -10,3 +10,9 @@ etl-job:
 This is a small application and supporting custom workflow task which allows
 TRIRIGA to execute Pentaho Data Integration (Kettle) based ETL jobs and
 transformations on a scheduled or on-demand basis. 
+
+
+exhibit:
+
+This is a servlet that extracts content from TRIRIGA and presents it in a
+format compatible with the SIMILE Exhibit framework.
