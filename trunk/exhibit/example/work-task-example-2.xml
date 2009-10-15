@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+This is just a small Google Gadgets wrapper for the example Exhibit
+-->
+<Module>
+    <ModulePrefs title="Exhibit - Work Task Example with Timeline, Mapping, and Priority Color-Coding"/>
+    <Content type="url" href="work-task-example-2.html"/>
+</Module>
