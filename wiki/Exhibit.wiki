@@ -1,4 +1,4 @@
-#summary Small application providing support for SIMILE Exhibit integration.
+#summary Information about the SIMILE Exhibit integration utility.
 
 = Introduction =
 
