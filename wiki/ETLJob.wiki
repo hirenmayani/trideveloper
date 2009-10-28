@@ -1,4 +1,4 @@
-#summary Information about the ETL Job custom task
+#summary Information about the ETL Job custom task.
 
 = Introduction =
 
