@@ -10,5 +10,6 @@
         <module>tririga-client</module>
         <module>etl-job</module>
         <module>exhibit</module>
+        <module>logreader</module>
     </modules>
 </project>
