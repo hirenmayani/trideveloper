@@ -263,11 +263,7 @@ public class ETLJobTask implements CustomBusinessConnectTask {
                 }
                 noErrors = false;
             } finally {
-                if (log != null) {
-                    try {
-                        log.close();
-                    } catch (Exception ignore) { }
-                }
+                LogWriter.closeAndRemoveFileAppender();
                 if (createdEntry && jobNumber != null) {
                     try {
                         statement =
