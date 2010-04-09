@@ -3,7 +3,7 @@
     <groupId>trideveloper</groupId>
     <artifactId>tririga-client</artifactId>
     <packaging>jar</packaging>
-    <version>1.0</version>
+    <version>1.5</version>
     <name>tririga-client</name>
     <url>http://maven.apache.org</url>
     <dependencies>
@@ -65,6 +65,7 @@
                                     <mapping namespace="http://dto.ws.tririga.com" package="com.trideveloper.tririga.ws.dto"/>
                                     <mapping namespace="http://errors.ws.tririga.com" package="com.trideveloper.tririga.ws.errors"/>
                                     <mapping namespace="http://gui.dto.ws.tririga.com" package="com.trideveloper.tririga.ws.dto.gui"/>
+                                    <mapping namespace="http://content.dto.ws.tririga.com" package="com.trideveloper.tririga.ws.dto.content"/>
                                     <mapping namespace="http://ws.tririga.com" package="com.trideveloper.tririga.ws"/>
                                 </wsdl2java>
                                 <wsdl2java output="${project.build.directory}/generated/java" url="src/main/wsdl/query.wsdl" verbose="true">
