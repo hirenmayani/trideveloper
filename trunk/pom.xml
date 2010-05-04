@@ -11,5 +11,6 @@
         <module>etl-job</module>
         <module>exhibit</module>
         <module>logreader</module>
+        <module>triftp</module>
     </modules>
 </project>
