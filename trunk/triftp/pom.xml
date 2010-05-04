@@ -1,29 +1,26 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>trideveloper</groupId>
-    <artifactId>exhibit-engine</artifactId>
-    <packaging>jar</packaging>
+    <artifactId>triftp</artifactId>
+    <packaging>war</packaging>
     <version>1.0</version>
-    <name>exhibit-engine</name>
+    <name>triftp</name>
     <url>http://maven.apache.org</url>
     <dependencies>
         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>[2.3,)</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>trideveloper</groupId>
             <artifactId>tririga-client</artifactId>
-            <version>[1.0,2.0)</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20080701</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>[0,)</version>
+            <version>[1.5,2.0)</version>
         </dependency>
     </dependencies>
     <build>
+        <finalName>ftp</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -31,13 +28,6 @@
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <finalName>exhibit-engine</finalName>
                 </configuration>
             </plugin>
         </plugins>

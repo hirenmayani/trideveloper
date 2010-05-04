@@ -23,3 +23,10 @@ logreader:
 This is a utility object and supporting custom workflow task which reads
 the "awft.log" and "swft.log" logfiles (and archived logfiles) to extract
 metrics on workflow performance.
+
+
+triftp:
+
+This is a middleware FTP "gateway" that provides FTP-based access to the
+TRIRIGA Document Manager.
+
