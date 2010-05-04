@@ -15,7 +15,10 @@ Simply run the following from this directory:
     mvn install
 
 The middleware warfile will be created in the "exhibit-web/target" subdirectory
-as "exhibit.war".
+as "exhibit.war".  Note that this project may have dependencies on other
+libraries and projects in the triDeveloper suite; those can be resolved
+manually, or this project can be built as part of the suite by running
+"mvn install" from the parent directory (the suite root).
 
 
 INSTALLING
