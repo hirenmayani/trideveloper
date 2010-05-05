@@ -40,6 +40,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.trideveloper.ftp.FtpConstants.*;
+
 public class DefaultTririgaFile implements TririgaFile {
 
     private static final String MODIFIED_FORMAT = "MM/dd/yyyy h:mm:ss a";
@@ -59,6 +61,8 @@ public class DefaultTririgaFile implements TririgaFile {
     private static final String FINAL_DELETE_LABEL = "Final Delete";
 
     private static final String DELETED_STATE = "Deleted";
+
+    private static final String CHECKED_IN_STATUS = "Checked In";
 
     private static final String DOCUMENT_MODULE_NAME = "Document";
 
@@ -86,6 +90,10 @@ public class DefaultTririgaFile implements TririgaFile {
     private static final String RECORD_STATE_FIELD =
             RECORD_INFORMATION_SECTION_NAME + "." + RECORD_STATE_FIELD_NAME;
 
+    private static final String STATUS_FIELD_NAME = "DM_FILE_STATUS";
+
+    private static final String SIZE_FIELD_NAME = "DM_FILE_SIZE";
+
     private static final String FILENAME_FIELD_NAME = "DM_FILE_NAME";
 
     private static final String NAME_FIELD_NAME = "Name";
@@ -102,6 +110,8 @@ public class DefaultTririgaFile implements TririgaFile {
 
     private static final String MODIFIED_FIELD =
             RECORD_INFORMATION_SECTION_NAME + "." + MODIFIED_FIELD_NAME;
+
+    private static final String GLOBAL_ROOT = getGlobalRoot();
 
     private static final int ALL_PROJECT_SCOPE = 2;
 
@@ -209,6 +219,17 @@ public class DefaultTririgaFile implements TririgaFile {
         }
         assert (id != -1l);
         final TririgaClient client = getClient();
+        synchronized (DefaultTririgaFile.class) {
+            if (documentModuleId == -1) {
+                documentModuleId = client.getModuleId(DOCUMENT_MODULE_NAME);
+            }
+            if (documentObjectTypeId == -1l) {
+                documentObjectTypeId = client.getObjectTypeId(
+                        DOCUMENT_MODULE_NAME, DOCUMENT_OBJECT_TYPE_NAME);
+            }
+        }
+        assert (documentModuleId != -1);
+        assert (documentObjectTypeId != -1l);
         final File temp = File.createTempFile("sync", null);
         final Content content = new Content();
         content.setRecordId(id);
@@ -234,6 +255,31 @@ public class DefaultTririgaFile implements TririgaFile {
                             throw new FileNotFoundException(
                                     DefaultTririgaFile.this.toString());
                         }
+                        IntegrationField sizeField = new IntegrationField();
+                        sizeField.setName(SIZE_FIELD_NAME);
+                        sizeField.setValue(String.valueOf(fileSize));
+                        IntegrationField[] generalInfoFields =
+                                new IntegrationField[] { sizeField };
+                        IntegrationSection generalInfo =
+                                new IntegrationSection();
+                        generalInfo.setName(GENERAL_INFO_SECTION_NAME);
+                        generalInfo.setFields(generalInfoFields);
+                        IntegrationSection[] sections =
+                                new IntegrationSection[] { generalInfo };
+                        IntegrationRecord integrationRecord =
+                                new IntegrationRecord();
+                        integrationRecord.setId(content.getRecordId());
+                        integrationRecord.setSections(sections);
+                        integrationRecord.setActionName("");
+                        integrationRecord.setModuleId(documentModuleId);
+                        integrationRecord.setObjectTypeId(documentObjectTypeId);
+                        integrationRecord.setObjectTypeName(
+                                DOCUMENT_OBJECT_TYPE_NAME);
+                        integrationRecord.setObjectPath(toPath(getParent()));
+                        try {
+                            client.saveRecord(new IntegrationRecord[] {
+                                    integrationRecord });
+                        } catch (Exception ignore) { }
                     } finally {
                         temp.delete();
                     }
@@ -565,8 +611,11 @@ public class DefaultTririgaFile implements TririgaFile {
         IntegrationField pathField = new IntegrationField();
         pathField.setName(PATH_FIELD_NAME);
         pathField.setValue(toPath(toString()));
+        IntegrationField statusField = new IntegrationField();
+        statusField.setName(STATUS_FIELD_NAME);
+        statusField.setValue(CHECKED_IN_STATUS);
         IntegrationField[] generalInfoFields = new IntegrationField[] {
-            nameField, filenameField, pathField
+            nameField, filenameField, pathField, statusField
         };
         IntegrationField[] recordInformationFields = new IntegrationField[] {
             typeNameField
@@ -803,11 +852,24 @@ public class DefaultTririgaFile implements TririgaFile {
         return fields;
     }
 
-    private static String toPath(String uri) {
+    private static String getGlobalRoot() {
+        String globalRoot = Configuration.getString(GLOBAL_ROOT_PROPERTY);
+        if (globalRoot == null || "".equals(globalRoot = globalRoot.trim())) {
+            return "";
+        }
+        StringBuilder rootPath =
+                new StringBuilder(globalRoot.replace('/', '\\'));
+        if (rootPath.charAt(0) != '\\') rootPath.insert(0, '\\');
+        int end = rootPath.length() - 1;
+        if (rootPath.charAt(end) == '\\') rootPath.setLength(end);
+        return rootPath.toString();
+    }
+
+    private String toPath(String uri) {
         if (uri == null) uri = "";
         StringBuilder path = new StringBuilder(uri.replace('/', '\\'));
         if (path.length() > 0 && path.charAt(0) != '\\') path.insert(0, '\\');
-        path.insert(0, "\\ROOT");
+        path.insert(0, "\\ROOT" + GLOBAL_ROOT);
         int end = path.length() - 1;
         if (path.charAt(end) == '\\') path.setLength(end);
         return path.toString();

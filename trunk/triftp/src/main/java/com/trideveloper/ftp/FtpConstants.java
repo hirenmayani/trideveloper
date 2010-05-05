@@ -10,6 +10,8 @@ interface FtpConstants {
 
     public static final String FTP_GROUP_PROPERTY = "ftpGroup";
 
+    public static final String GLOBAL_ROOT_PROPERTY = "globalRoot";
+
     public static final String DEFAULT_FTP_GROUP = "Admin Group";
 
     public static final int DEFAULT_FTP_PORT = 21;
