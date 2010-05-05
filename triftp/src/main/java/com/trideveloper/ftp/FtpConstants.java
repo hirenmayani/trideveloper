@@ -12,6 +12,8 @@ interface FtpConstants {
 
     public static final String GLOBAL_ROOT_PROPERTY = "globalRoot";
 
+    public static final String PASSIVE_PORT_RANGE_PROPERTY = "passivePortRange";
+
     public static final String DEFAULT_FTP_GROUP = "Admin Group";
 
     public static final int DEFAULT_FTP_PORT = 21;

@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,9 +13,12 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.trideveloper.ftp.FtpConstants.*;
 import static com.trideveloper.ftp.FtpStatus.*;
 
 public class PassiveDataChannel implements Runnable, DataChannel {
+
+    private static final int[] PORT_RANGE = getPortRange();
 
     private final List<Transfer> transferList = new ArrayList<Transfer>();
 
@@ -25,7 +29,7 @@ public class PassiveDataChannel implements Runnable, DataChannel {
     private Thread listenerThread;
 
     public PassiveDataChannel(InetAddress endpoint) throws IOException {
-        serverSocket = new ServerSocket(0, 0, endpoint);
+        serverSocket = createServerSocket(endpoint);
         StringBuilder info = new StringBuilder();
         InetAddress address = serverSocket.getInetAddress();
         for (byte addressByte : address.getAddress()) {
@@ -130,6 +134,44 @@ public class PassiveDataChannel implements Runnable, DataChannel {
 
     public String getConnectionInfo() {
         return connectionInfo;
+    }
+
+    private static ServerSocket createServerSocket(InetAddress endpoint)
+            throws IOException {
+        if (PORT_RANGE == null) return new ServerSocket(0, 0, endpoint);
+        for (int port = PORT_RANGE[0], maxPort = PORT_RANGE[1];
+                port <= maxPort; port++) {
+            try {
+                return new ServerSocket(port, 0, endpoint);
+            } catch (BindException ignore) { }
+        }
+        throw new IOException("No ports available in configured range.");
+    }
+
+    private static int[] getPortRange() {
+        String passivePortRange =
+                Configuration.getString(PASSIVE_PORT_RANGE_PROPERTY);
+        if (passivePortRange == null ||
+                "".equals(passivePortRange = passivePortRange.trim())) {
+            return null;
+        }
+        try {
+            String[] bounds = passivePortRange.split("[ -]+");
+            if (bounds.length != 2) throw new Exception();
+            int first = Integer.parseInt(bounds[0]);
+            int second = Integer.parseInt(bounds[1]);
+            if (first < 1 || first > 65535) throw new Exception();
+            if (second < 1 || second > 65535) throw new Exception();
+            if (second < first) {
+                int tmp = first;
+                first = second;
+                second = tmp;
+            }
+            return new int[] { first, second };
+        } catch (Exception ex) {
+            throw new IllegalStateException("Invalid Passive Port range: " +
+                    passivePortRange);
+        }
     }
 
 }
