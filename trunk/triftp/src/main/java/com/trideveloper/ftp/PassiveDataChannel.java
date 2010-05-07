@@ -36,8 +36,7 @@ public class PassiveDataChannel implements Runnable, DataChannel {
     public PassiveDataChannel(InetAddress endpoint) throws IOException {
         serverSocket = createServerSocket(endpoint);
         StringBuilder info = new StringBuilder();
-        InetAddress address = (endpoint == null) ?
-                serverSocket.getInetAddress() : endpoint;
+        InetAddress address = serverSocket.getInetAddress();
         for (byte addressByte : address.getAddress()) {
             info.append(addressByte & 0xff).append(',');
         }
