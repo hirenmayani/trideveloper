@@ -20,6 +20,9 @@ public class PassiveDataChannel implements Runnable, DataChannel {
 
     private static final int[] PORT_RANGE = getPortRange();
 
+    private static final String FORCE_ENDPOINT =
+            Configuration.getString(FORCE_ENDPOINT_PROPERTY);
+
     private final List<Transfer> transferList = new ArrayList<Transfer>();
 
     private final String connectionInfo;
@@ -139,8 +142,12 @@ public class PassiveDataChannel implements Runnable, DataChannel {
 
     private static ServerSocket createServerSocket(InetAddress endpoint)
             throws IOException {
-        if (!Configuration.getBoolean(ISOLATE_DATA_CHANNEL_PROPERTY)) {
-            endpoint = null;
+        if (FORCE_ENDPOINT != null) {
+            if (FORCE_ENDPOINT.trim().equalsIgnoreCase(ALL_ENDPOINTS)) {
+                endpoint = null;
+            } else {
+                endpoint = InetAddress.getByName(FORCE_ENDPOINT.trim());
+            }
         }
         if (PORT_RANGE == null) return new ServerSocket(0, 0, endpoint);
         for (int port = PORT_RANGE[0], maxPort = PORT_RANGE[1];
