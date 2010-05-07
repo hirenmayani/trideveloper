@@ -18,6 +18,8 @@ import static com.trideveloper.ftp.FtpStatus.*;
 
 public class PassiveDataChannel implements Runnable, DataChannel {
 
+    private static final String ALL_ENDPOINTS = "ALL";
+
     private static final int[] PORT_RANGE = getPortRange();
 
     private static final String FORCE_ENDPOINT =
