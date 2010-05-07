@@ -14,8 +14,7 @@ interface FtpConstants {
 
     public static final String PASSIVE_PORT_RANGE_PROPERTY = "passivePortRange";
 
-    public static final String ISOLATE_DATA_CHANNEL_PROPERTY =
-            "isolateDataChannel";
+    public static final String FORCE_ENDPOINT_PROPERTY = "forceEndpoint";
 
     public static final String DEFAULT_FTP_GROUP = "Admin Group";
 
