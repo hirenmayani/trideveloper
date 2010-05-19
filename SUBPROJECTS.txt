@@ -30,3 +30,8 @@ triftp:
 This is a middleware FTP "gateway" that provides FTP-based access to the
 TRIRIGA Document Manager.
 
+
+spelling:
+
+This is a small spellchecker extension for TRIRIGA.
+

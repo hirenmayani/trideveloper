@@ -45,6 +45,8 @@ mvn install:install-file -DgroupId=org.pentaho -DartifactId=kettle-core -Dversio
 
 mvn install:install-file -DgroupId=org.pentaho -DartifactId=kettle-engine -Dversion=1.0 -Dpackaging=jar -Dfile=kettle-engine.jar
 
+mvn install:install-file -DgroupId=jazzy -DartifactId=jazzy-core -Dversion=0.5.2 -Dpackaging=jar -Dfile=spelling/lib/jazzy-core-0.5.2.jar
+
 
    After Maven has finished importing the libraries, you can delete the .jar
    files from this directory.

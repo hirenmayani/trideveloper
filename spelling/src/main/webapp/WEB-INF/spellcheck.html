@@ -1,0 +1,172 @@
+<html>
+<head>
+<title>Spell Check</title>
+<style type="text/css">
+    body {
+        margin: 0px;
+        background: white;
+        font-family: Trebuchet, Verdana, Arial, Helvetica, sans-serif;
+        font-size: 10px;
+    }
+    a {
+        display: block;
+        padding-left: 2px;
+        text-decoration: none;
+        color: MenuText;
+    }
+    a:hover {
+        background: Highlight;
+        color: HighlightText;
+    }
+    div.content {
+        margin: 8px;
+        float: left;
+        width: 300px;
+    }
+    div.word {
+        overflow: hidden;
+    }
+    div.replacement {
+        vertical-align: middle;
+    }
+    div.controls {
+        margin: 8px;
+        width: 110px;
+    }
+    input.button {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 4px;
+        font-family: Trebuchet, Verdana, Arial, Helvetica, sans-serif;
+        font-size: 10px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    span.label {
+        font-weight: bold;
+        width: 80px;
+        margin-right: 10px;
+    }
+    span.word {
+        font-size: 10pt;
+    }
+    div#suggestions {
+        margin-top: 4px;
+        background: Menu;
+        border: 2px inset;
+        font-size: 10pt;
+        height: 150px;
+        overflow: auto;
+        overflow-y: scroll;
+    }
+    input#replacement {
+        vertical-align: middle;
+        width: 200px;
+    }
+</style>
+<script type="text/javascript">
+
+    var SpellChecker = opener.SpellChecker;
+
+    function init() {
+        document.attachEvent("onkeyup", function() {
+            if (window.event.keyCode == 27) SpellChecker.cancel();
+        });
+        var spellingError = SpellChecker.getWord();
+        if (!spellingError || spellingError == "") {
+            SpellChecker.next();
+        }
+        var word = document.getElementById("word");
+        while (word.hasChildNodes()) word.removeChild(word.firstChild);
+        word.appendChild(document.createTextNode(spellingError));
+        var suggestions = document.getElementById("suggestions");
+        while (suggestions.hasChildNodes()) {
+            suggestions.removeChild(suggestions.firstChild);
+        }
+        var errorSuggestions = SpellChecker.getSuggestions();
+        if (errorSuggestions) {
+            for (var i = 0;  i < errorSuggestions.length; i++) {
+                suggestions.appendChild(createSuggestion(errorSuggestions[i]));
+            }
+        }
+        var replacement = SpellChecker.getReplacement();
+        if (!replacement || replacement == "" || replacement == spellingError) {
+            if (errorSuggestions && errorSuggestions.length > 0) {
+                replacement = errorSuggestions[0];
+            } else if (replacement != spellingError) {
+                replacement = spellingError;
+            }
+        }
+        document.getElementById("replacement").value = replacement;
+        function doReplace() {
+            document.getElementById("replace").disabled = true;
+            var value = document.getElementById("replacement").value;
+            if (!value) value = "";
+            SpellChecker.replace(value);
+        }
+        document.getElementById("replace").onclick = doReplace;
+        document.getElementById("spelling").onsubmit = function() {
+            if (!document.getElementById("replace").disabled) doReplace();
+            return false;
+        };
+        document.getElementById("ignoreOnce").onclick = function() {
+            SpellChecker.next();
+        };
+        document.getElementById("ignoreAll").onclick = function() {
+            SpellChecker.ignore();
+        };
+        checkReplace();
+        document.getElementById("replacement").focus();
+    }
+
+    function createSuggestion(suggestedWord) {
+        var holder = document.createElement("div");
+        holder.className = "suggestion";
+        var link = document.createElement("a");
+        holder.appendChild(link);
+        link.href = "javascript:void(0);";
+        link.onclick = function() {
+            document.getElementById("replacement").value = suggestedWord;
+            checkReplace();
+        };
+        link.appendChild(document.createTextNode(suggestedWord));
+        return holder;
+    }
+
+    function checkReplace() {
+        var replaceValue = document.getElementById("replacement").value;
+        var wordHolder = document.getElementById("word");
+        if (!wordHolder || wordHolder.innerHTML != replaceValue) {
+            document.getElementById("replace").disabled = false;
+        } else {
+            document.getElementById("replace").disabled = true;
+        }
+    }
+
+</script>
+</head>
+<body onload="init();">
+<form id="spelling">
+    <div class="content">
+        <div class="word">
+            <span class="label">Not Found:</span>
+            <span id="word" class="word"></span>
+        </div>
+        <div class="replacement">
+            <span class="label">Replacement:</span>
+            <input id="replacement" onchange="checkReplace();" onkeyup="checkReplace();" name="replacement"/>
+        </div>
+        <div class="suggestionList">
+            <span class="label">Suggestions:</span>
+            <div id="suggestions"></div>
+        </div>
+    </div>
+    <div class="controls">
+        <input id="replace" class="button" type="submit" value="Replace"/>
+        <input id="ignoreOnce" class="button" type="button" value="Ignore Once"/>
+        <input id="ignoreAll" class="button" type="button" value="Ignore All"/>
+        <input id="cancel" class="button" type="button" value="Cancel" onclick="SpellChecker.cancel();"/>
+    </div>
+</form>
+</body>
+</html>

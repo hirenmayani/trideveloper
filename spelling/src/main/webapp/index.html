@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>SpellCheck Test</title>
+<script type="text/javascript" src="/spelling/spelling"></script>
+<script type="text/javascript">
+    function listenForSpelling() {
+        var items = document.getElementsByTagName("*");
+        function createItemHandler(item) {
+            return function() {
+                if (window.event.keyCode == 118) {
+                    window.event.cancelBubble = true;
+                    if (window.event.shiftKey) {
+                        SpellChecker.check(document);
+                    } else {
+                        SpellChecker.check(item);
+                    }
+                }
+            };
+        }
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var itemType = item.tagName.toLowerCase();
+            if (itemType == "textarea" || (itemType == "input" &&
+                    item.type.toLowerCase() == "text")) {
+                item.attachEvent("onkeydown", createItemHandler(item));
+            }
+        }
+        document.attachEvent("onkeydown", function() {
+            if (window.event.keyCode == 118 && window.event.shiftKey) {
+                SpellChecker.check(document);
+            }
+        });
+    }
+</script>
+</head>
+<body onload="listenForSpelling();"></body>
+<form action="javascript:void(0);">
+    <p>
+    Press "F7" in a field to spell check that field; press "Shift+F7" to
+    check all fields.
+    </p>
+    <p>
+    Field 1: <input name="field1" id="field1"/>
+    <p>
+    Field 2: <input name="field1" id="field1"/>
+    <p>
+    Text Area:
+    <br/>
+    <textarea rows="5" cols="60" name="text1" id="text1"></textarea>
+</form>
+</html>
+
