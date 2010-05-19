@@ -1,0 +1,18 @@
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd" version="2.4">
+    <servlet>
+        <servlet-name>spelling</servlet-name>
+        <display-name>Spell Checker</display-name>
+        <description>Provides spell-checking services.</description>
+        <servlet-class>com.trideveloper.spelling.SpellingServlet</servlet-class>
+        <init-param>
+            <param-name>updatePeriod</param-name>
+            <param-value>300000</param-value>
+            <description>Specifies the period in milliseconds between dictionary refreshes.</description>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>spelling</servlet-name>
+        <url-pattern>/spelling</url-pattern>
+    </servlet-mapping>
+</web-app>

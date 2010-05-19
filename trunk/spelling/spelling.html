@@ -1,0 +1,66 @@
+<html>
+<head>
+<script type="text/javascript" src="/spelling/spelling"></script>
+<script type="text/javascript">
+    function listenForSpelling() {
+        // disable the force to designMode
+        parent.makeEditable = function() { };
+        var items = parent.document.getElementsByTagName("*");
+        function createItemHandler(item) {
+            return function() {
+                if (parent.window.event.keyCode == 118) {
+                    parent.window.event.cancelBubble = true;
+                    if (parent.window.event.shiftKey) {
+                        SpellChecker.check(parent.document);
+                    } else {
+                        SpellChecker.check(item);
+                    }
+                }
+            };
+        }
+        function createFrameHandler(item, frameWin) {
+            return function() {
+                if (frameWin.event.keyCode == 118) {
+                    if (frameWin.event.shiftKey) {
+                        SpellChecker.check(parent.document);
+                    } else {
+                        SpellChecker.check(item);
+                    }
+                }
+            };
+        }
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var itemType = item.tagName.toLowerCase();
+            if (itemType == "textarea" || (itemType == "input" &&
+                    item.type.toLowerCase() == "text")) {
+                item.attachEvent("onkeydown", createItemHandler(item));
+            } else if (itemType == "iframe") {
+                var itemDocument = item.contentDocument ? item.contentDocument :
+                        item.contentWindow.document;
+                if (itemDocument && (itemDocument.designMode.toString(
+                        ).toLowerCase() == "on" ||
+                                itemDocument.body.contentEditable.toString(
+                                        ).toLowerCase() == "true")) {
+                    itemDocument.attachEvent("onkeydown",
+                            createFrameHandler(item, item.contentWindow));
+                }
+            }
+        }
+        parent.document.attachEvent("onkeydown", function() {
+            if (parent.window.event.keyCode == 118 &&
+                    parent.window.event.shiftKey) {
+                SpellChecker.check(parent.document);
+            }
+        });
+        document.attachEvent("onkeydown", function() {
+            if (window.event.keyCode == 118 && window.event.shiftKey) {
+                SpellChecker.check(parent.document);
+            }
+        });
+    }
+</script>
+</head>
+<body onload="listenForSpelling();"></body>
+</html>
+

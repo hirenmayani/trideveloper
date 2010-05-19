@@ -1,0 +1,29 @@
+To install the servlet, copy the spelling dictionary file ("spellcheck.txt",
+found in the same directory as these directions) alongside the
+TRIRIGA configuration properties (found in the "config" subdirectory of your
+TRIRIGA installation).  Then deploy the "spelling.war" warfile.  Under JBoss,
+this can be done by copying the warfile to the "server/all/deploy"
+subdirectory under the JBoss root; similar steps would be taken for other
+application servers (consult your documentation).
+
+After deploying, you should be able to point your web browser at
+"/spelling/index.html" on your app server and see a small test page.
+
+To add the spell checking functionality to your GUIs:
+
+
+1) Upload "spelling.html" (found in the same directory as these instructions)
+   into Document Manager.  You only need to perform this step once.
+
+2) Revise your GUI.
+
+3) Add a new Report Section at the very bottom of the tab, specifying the
+   "spelling.html" file as the source Document.  Make sure the section is
+   set to Visible, but hide the title bar and set the height to "1".
+
+4) Publish your GUI.
+
+
+Once added, you should be able to press "F7" when editing a field to spell
+check that field, and "Shift-F7" to check all fields on the tab.
+
