@@ -35,3 +35,9 @@ spelling:
 
 This is a small spellchecker extension for TRIRIGA.
 
+
+translate:
+
+This is a custom workflow task and supporting application object that uses
+the Google AJAX Language API to perform translation of text fields.
+

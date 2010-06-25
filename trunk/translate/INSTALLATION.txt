@@ -1,0 +1,23 @@
+To install the translation custom workflow task, copy the "translate.jar"
+jarfile to the "server/all/lib" subdirectory under the JBoss root (typically
+found directly under the TRIRIGA installation root).  After installing you
+will need to restart JBoss.
+
+For other application server platforms, consult your server documentation.
+
+The "translate-om.zip" Object Migration package can then be imported, which
+will create a "devTranslationHelper" object under the triHelper module.
+
+To perform translations, create a devTranslationHelper instance and specify
+the field name (and optionally the section name) that will be translated on
+the target object.  The target language must also be specified (default is
+"en", English).  The source language can optionally be specified; if left
+blank, the source language will be auto-detected.
+
+Once the helper object is configured, create an "Alters" association from
+the helper object to the target objects that are to be translated.  To
+perform the translation, simply trigger the "triApply" action
+on the helper object.  The "Alters" associations will be removed after
+translation has completed; to delete the helper object, simply trigger
+the "triDelete" action on the object.
+
