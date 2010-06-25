@@ -52,3 +52,5 @@ restart JBoss.
 
 For other application server platforms, consult your server documentation.
 
+The "etl-job-om.zip" Object Migration package can then be imported, which
+will install the ETL Job application under the "devETLJob" module.
