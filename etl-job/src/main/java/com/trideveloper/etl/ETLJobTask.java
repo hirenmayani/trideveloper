@@ -7,10 +7,7 @@ import com.tririga.ws.TririgaWS;
 
 import com.tririga.ws.dto.Association;
 
-import com.tririga.ws.dto.gui.Field;
 import com.tririga.ws.dto.gui.GUI;
-import com.tririga.ws.dto.gui.Section;
-import com.tririga.ws.dto.gui.Tab;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -108,7 +105,7 @@ public class ETLJobTask implements CustomBusinessConnectTask {
             boolean createdEntry = false;
             try {
                 GUI gui = tririga.getGUI(record.getGuiId(), record.getId());
-                Map<String, String> fields = getFields(gui);
+                Map<String, String> fields = Util.getRecordData(tririga, gui);
                 String jobFile = fields.get(JOB_FILE_FIELD);
                 if (jobFile == null) {
                     throw new IllegalStateException("No filename specified.");
@@ -168,7 +165,7 @@ public class ETLJobTask implements CustomBusinessConnectTask {
                     for (com.tririga.ws.dto.Record variable : variableHeaders) {
                         gui = tririga.getGUI(variable.getGuiId(),
                                 variable.getId());
-                        fields = getFields(gui);
+                        fields = Util.getRecordData(tririga, gui);
                         String variableName = fields.get(VARIABLE_NAME_FIELD);
                         if (variableName == null) continue;
                         String variableValue = fields.get(VARIABLE_VALUE_FIELD);
@@ -294,32 +291,6 @@ public class ETLJobTask implements CustomBusinessConnectTask {
             }
         }
         return noErrors;
-    }
-
-    private static Map<String, String> getFields(GUI gui) throws Exception {
-        Map<String, String> fieldData = new HashMap<String, String>();
-        if (gui == null) throw new NullPointerException("Object GUI is null.");
-        Tab[] tabs = gui.getTabs();
-        if (tabs == null) return fieldData;
-        for (Tab tab : tabs) {
-            if (tab == null) continue;
-            Section[] sections = tab.getSections();
-            if (sections == null) continue;
-            for (Section section : sections) {
-                if (section == null) continue;
-                Field[] fields = section.getFields();
-                if (fields == null) continue;
-                for (Field field : fields) {
-                    String name = field.getName();
-                    if (name == null) continue;
-                    String value = field.getValue();
-                    if (value != null && !"".equals(value)) {
-                        fieldData.put(name, value);
-                    }
-                }
-            }
-        }
-        return fieldData;
     }
 
     private static DataSource getDataSource() throws Exception {
