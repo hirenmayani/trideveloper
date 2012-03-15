@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>trideveloper</groupId>
+    <artifactId>broadcast-task</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0</version>
+    <name>broadcast-task</name>
+    <url>http://maven.apache.org</url>
+    <dependencies>
+<!--
+mvn install:install-file -DgroupId=com.tririga -DartifactId=business-connect -Dversion=1.0 -Dpackaging=jar -Dfile=TririgaBusinessConnect.jar
+mvn install:install-file -DgroupId=com.tririga -DartifactId=custom-task -Dversion=1.0 -Dpackaging=jar -Dfile=TririgaCustomTask.jar
+-->
+        <dependency>
+            <groupId>com.tririga</groupId>
+            <artifactId>business-connect</artifactId>
+            <version>[0,)</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tririga</groupId>
+            <artifactId>custom-task</artifactId>
+            <version>[0,)</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>broadcast-task</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

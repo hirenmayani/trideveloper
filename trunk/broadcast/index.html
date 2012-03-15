@@ -1,0 +1,163 @@
+<!--
+Copyright (c) 2006 Eric Glass
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+
+<html>
+<head>
+    <title>Tririga Broadcaster Client</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">
+        div.error {
+            font-family: Trebuchet MS, Verdana, Tahoma, Arial, sans-serif;
+            font-size: 8pt;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+    <script>
+
+        var broadcastUrl = null;
+
+        var xmlHttpRequest = null;
+
+        var retryCount = 5;
+
+        function initBroadcaster() {
+            broadcastUrl = window.location.protocol + "//" +
+                    window.location.host + "/broadcast/broadcast";
+            /*@cc_on
+            @if (@_jscript_version >= 5)
+                try {
+                    xmlHttpRequest = new ActiveXObject("Msxml2.XMLHTTP");
+                } catch (e) {
+                    try {
+                        xmlHttpRequest =
+                                new ActiveXObject("Microsoft.XMLHTTP");
+                    } catch (failure) {
+                        xmlHttpRequest = null;
+                    }
+                }
+            @else
+                xmlHttpRequest = null;
+            @end @*/
+            if (!xmlHttpRequest && typeof XMLHttpRequest != 'undefined') {
+                try {
+                    xmlHttpRequest = new XMLHttpRequest();
+                } catch (e) {
+                    xmlHttpRequest = null;
+                }
+            }
+            if (!xmlHttpRequest) {
+                setError("Unable to create a request object.");
+            } else {
+                // sleep for a couple of seconds to let the user interface
+                // "settle down" before connecting to the push server
+                setTimeout(connectToBroadcaster, 5000);
+            }
+        }
+
+        /*
+         * connect to the server and wait to get events.  the server will
+         * "hold" the response until events are available.
+         */
+        function connectToBroadcaster() {
+            if (!xmlHttpRequest) {
+                setError("No request object.");
+                return;
+            }
+            try {
+                netscape.security.PrivilegeManager.enablePrivilege(
+                        "UniversalBrowserRead");
+            } catch (e) { }
+            try {
+                xmlHttpRequest.open("GET", broadcastUrl, true);
+                // set "broadcastReceived" as the callback function
+                xmlHttpRequest.onreadystatechange = broadcastReceived;
+                xmlHttpRequest.send(null);
+            } catch (e) {
+                setError("Unable to prepare request - " +
+                        (e.message ? e.message : e));
+            }
+        }
+
+        /*
+         * handle event data received from the server.
+         */
+        function broadcastReceived() {
+            if (xmlHttpRequest.readyState != 4) return;
+            if (xmlHttpRequest.status != 200) {
+                try {
+                    setError("HTTP Error " + xmlHttpRequest.status + ": " +
+                            xmlHttpRequest.statusText);
+                } catch (ignore) { }
+                if (retryCount-- > 0) {
+                    connectToBroadcaster();
+                    return;
+                } else {
+                    setError("Broadcaster unavailable, waiting 30 seconds...");
+                    setTimeout(connectToBroadcaster, 30000);
+                    return;
+                }
+            }
+            setError(null);
+            retryCount = 5;
+            var records = null;
+            try {
+                // evaluate the JSON to get array of record IDs.
+                records = eval(xmlHttpRequest.responseText);
+            } catch (e) {
+                setError("Error processing message - " +
+                        (e.message ? e.message : e));
+                records = null;
+            }
+            if (records) {
+                for (var i = 0; i < records.length; i++) {
+                    showRecord(records[i]);
+                }
+            }
+            // reconnect to get the next event notification
+            connectToBroadcaster();
+        }
+
+        /*
+         * pop up the record window.
+         */
+        function showRecord(recordId) {
+            var specId = "" + recordId;
+            var url = "/WebProcess.srv?objectId=750000&" +
+                    "actionId=750011&specId=" + specId;
+            var target = window.open(url, specId,
+                    "width=600,height=450,toolbar=0,location=0," +
+                    "directories=0,status=0,menubar=0,resizable=1," +
+                    "scrollbars=1");
+            if (target.focus) target.focus();
+        }
+
+        function setError(message) {
+            document.getElementById("error").innerHTML = message ? message : "";
+        }
+
+    </script>
+</head>
+<body onload="initBroadcaster();">
+    <div class="error" id="error"/>
+</body>
+</html>
