@@ -10,6 +10,10 @@
 # the command line to dynamically offset everything by 100 (e.g. 9101), or
 # "-Djboss.service.binding.set=ports-02" to offset by 200 (9201), or
 # "-Djboss.service.binding.set=ports-03" to offset by 300 (9301).
+#
+# You will want to put this script in the TRIRIGA installation directory
+# (the directory containing "config", "logs", "jboss-5.1.0", etc.) and
+# run it from there.
 
 if [ ! -n "$1" ]
 then
