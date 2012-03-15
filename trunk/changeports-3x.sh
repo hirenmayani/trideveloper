@@ -14,7 +14,7 @@
 if [ ! -n "$1" ]
 then
     echo "What port number will you be running on?"
-    echo "(please use 9001 or above Ex: 11001 or 10001): "
+    echo "(please use 8001 or above Ex: 9001, 10001, 11001, etc.): "
     read PORT
 else
     PORT=$1
