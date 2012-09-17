@@ -1,0 +1,440 @@
+diff -Nuar jcifs_1.3.17/examples/JcifsPrint.java jcifs_1.3.17_print/examples/JcifsPrint.java
+--- jcifs_1.3.17/examples/JcifsPrint.java	1969-12-31 19:00:00.000000000 -0500
++++ jcifs_1.3.17_print/examples/JcifsPrint.java	2012-09-14 08:50:36.981640600 -0400
+@@ -0,0 +1,117 @@
++import java.awt.Dimension;
++import java.awt.Graphics;
++import java.awt.Graphics2D;
++
++import java.awt.print.PageFormat;
++import java.awt.print.Printable;
++
++import java.io.File;
++import java.io.FileInputStream;
++import java.io.FileOutputStream;
++import java.io.InputStream;
++import java.io.InputStreamReader;
++
++import javax.print.Doc;
++import javax.print.DocFlavor;
++import javax.print.DocPrintJob;
++import javax.print.PrintService;
++import javax.print.SimpleDoc;
++import javax.print.StreamPrintServiceFactory;
++
++import javax.swing.JEditorPane;
++import javax.swing.RepaintManager;
++
++import javax.swing.text.EditorKit;
++
++import javax.swing.text.html.HTMLEditorKit;
++
++import javax.swing.text.rtf.RTFEditorKit;
++
++import jcifs.smb.SmbFile;
++
++public class JcifsPrint {
++
++    public static void main(String[] args) throws Exception {
++        if (args == null || args.length == 0) {
++            System.out.println(
++                    "JcifsPrint <filename> <printer-url> [html|rtf|text]");
++            System.exit(0);
++        }
++        String filename = args[0];
++        String printerUrl = args[1];
++        String format = null;
++        if (args.length > 2) format = args[2];
++        if (format == null) format = "text";
++        // ensure the printer share has a trailing "/"
++        if (!printerUrl.endsWith("/")) printerUrl += "/";
++
++        EditorKit fileHandler;
++        if ("html".equalsIgnoreCase(format)) {
++            fileHandler = new HTMLEditorKit();
++        } else if ("rtf".equalsIgnoreCase(format)) {
++            fileHandler = new RTFEditorKit();
++        } else {
++            // we will print as raw text if it isn't HTML or RTF
++            fileHandler = null;
++        }
++        InputStream input = new FileInputStream(filename);
++        if (fileHandler != null) {
++            // render the document, then print as PostScript
++            InputStreamReader reader = new InputStreamReader(input, "UTF-8");
++            StringBuilder fileText = new StringBuilder();
++            char[] buf = new char[8192];
++            int count;
++            while ((count = reader.read(buf)) != -1) {
++                fileText.append(buf, 0, count);
++            }
++            reader.close();
++            final JEditorPane pane = new JEditorPane();
++            pane.setEditorKit(fileHandler);
++            pane.setText(fileText.toString());
++            Dimension preferred = pane.getPreferredSize();
++            pane.setSize(preferred.width, preferred.height);
++            pane.validate();
++            Printable printable = new Printable() {
++                public int print(Graphics g, PageFormat format, int pageIndex) {
++                    RepaintManager.currentManager(
++                            pane).setDoubleBufferingEnabled(false);
++                    Dimension size = pane.getSize();
++                    double panelWidth = size.width;
++                    double panelHeight = size.height;
++                    double pageHeight = format.getImageableHeight();
++                    double pageWidth = format.getImageableWidth();
++                    double scale = Math.max(pageWidth / panelWidth, 1.0d);
++                    int totalNumPages = (int)
++                            Math.ceil(scale * panelHeight / pageHeight);
++                    if (pageIndex >= totalNumPages) {
++                        return Printable.NO_SUCH_PAGE;
++                    }
++                    Graphics2D g2 = (Graphics2D) g;
++                    g2.translate(format.getImageableX(),
++                            format.getImageableY());
++                    g2.translate(0f, -pageIndex * pageHeight);
++                    g2.scale(scale, scale);
++                    pane.paint(g2);
++                    return Printable.PAGE_EXISTS;
++                }
++            };
++            DocFlavor flavor = DocFlavor.SERVICE_FORMATTED.PRINTABLE;
++            Doc doc = new SimpleDoc(printable, flavor, null);
++            StreamPrintServiceFactory[] factories =
++                    StreamPrintServiceFactory.lookupStreamPrintServiceFactories(
++                            null, "application/postscript");
++            // write the PostScript to the input filename + ".ps".
++            File postScriptFile = new File(filename + ".ps");
++            FileOutputStream output = new FileOutputStream(postScriptFile);
++            PrintService service = factories[0].getPrintService(output);
++            DocPrintJob job = service.createPrintJob();
++            job.print(doc, null);
++            output.flush();
++            output.close();
++            input = new FileInputStream(postScriptFile);
++        }
++        SmbFile printer = new SmbFile(printerUrl);
++        printer.print(input, "Jcifs Print Job");
++    }
++
++}
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/ServerMessageBlock.java jcifs_1.3.17_print/src/jcifs/smb/ServerMessageBlock.java
+--- jcifs_1.3.17/src/jcifs/smb/ServerMessageBlock.java	2012-09-14 08:52:02.623539000 -0400
++++ jcifs_1.3.17_print/src/jcifs/smb/ServerMessageBlock.java	2012-09-14 06:16:01.990141400 -0400
+@@ -154,6 +154,9 @@
+     static final byte SMB_COM_NT_TRANSACT        = (byte)0xA0;
+     static final byte SMB_COM_NT_TRANSACT_SECONDARY = (byte)0xA1;
+     static final byte SMB_COM_NT_CREATE_ANDX     = (byte)0xA2;
++    static final byte SMB_COM_OPEN_PRINT_FILE     = (byte)0xC0;
++    static final byte SMB_COM_WRITE_PRINT_FILE     = (byte)0xC1;
++    static final byte SMB_COM_CLOSE_PRINT_FILE     = (byte)0xC2;
+ 
+     /*
+      * Some fields specify the offset from the beginning of the header. This
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/SmbComClosePrintFile.java jcifs_1.3.17_print/src/jcifs/smb/SmbComClosePrintFile.java
+--- jcifs_1.3.17/src/jcifs/smb/SmbComClosePrintFile.java	1969-12-31 19:00:00.000000000 -0500
++++ jcifs_1.3.17_print/src/jcifs/smb/SmbComClosePrintFile.java	2012-09-14 06:17:10.551062900 -0400
+@@ -0,0 +1,36 @@
++package jcifs.smb;
++
++public class SmbComClosePrintFile extends ServerMessageBlock {
++   // File handle
++   /* USHORT */long fid;
++
++   public SmbComClosePrintFile(long fid) {
++       this.fid = fid;
++       command = SMB_COM_CLOSE_PRINT_FILE;
++   }
++   
++   @Override
++   int readBytesWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int readParameterWordsWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int writeBytesWireFormat(byte[] dst, int dstIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int writeParameterWordsWireFormat(byte[] dst, int dstIndex) {
++       writeInt2(fid, dst, dstIndex);
++       return 2;
++   }
++
++}
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/SmbComOpenPrintFile.java jcifs_1.3.17_print/src/jcifs/smb/SmbComOpenPrintFile.java
+--- jcifs_1.3.17/src/jcifs/smb/SmbComOpenPrintFile.java	1969-12-31 19:00:00.000000000 -0500
++++ jcifs_1.3.17_print/src/jcifs/smb/SmbComOpenPrintFile.java	2012-09-14 06:17:52.639470200 -0400
+@@ -0,0 +1,52 @@
++package jcifs.smb;
++
++public class SmbComOpenPrintFile extends ServerMessageBlock {
++   // Length of printer setup data
++   /* USHORT */long setupLength;
++
++   // 0 = Text mode (DOS expands TABs)
++   // 1 = Graphics mode
++   /* USHORT */long mode;
++
++   /* UCHAR */long bufferFormat = 0x04;
++
++   // Identifier string
++   /* STRING */String identifierString;
++
++   public SmbComOpenPrintFile(String identifierString) {
++       setupLength = 0;
++       mode = 1;
++       this.identifierString = identifierString;
++       command = SMB_COM_OPEN_PRINT_FILE;
++   }
++
++   @Override
++   int readBytesWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int readParameterWordsWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int writeBytesWireFormat(byte[] dst, int dstIndex) {
++       int start = dstIndex;
++
++       dst[dstIndex++] = (byte) 0x04;
++       dstIndex += writeString(identifierString, dst, dstIndex);
++
++       return dstIndex - start;
++   }
++
++   @Override
++   int writeParameterWordsWireFormat(byte[] dst, int dstIndex) {
++       writeInt2(setupLength, dst, dstIndex);
++       writeInt2(mode, dst, dstIndex);
++       return 4;
++   }
++
++}
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/SmbComOpenPrintFileResponse.java jcifs_1.3.17_print/src/jcifs/smb/SmbComOpenPrintFileResponse.java
+--- jcifs_1.3.17/src/jcifs/smb/SmbComOpenPrintFileResponse.java	1969-12-31 19:00:00.000000000 -0500
++++ jcifs_1.3.17_print/src/jcifs/smb/SmbComOpenPrintFileResponse.java	2012-09-14 06:18:35.239906800 -0400
+@@ -0,0 +1,32 @@
++package jcifs.smb;
++
++public class SmbComOpenPrintFileResponse extends ServerMessageBlock {
++   // File handle
++   /* USHORT */long fid;
++
++   @Override
++   int readBytesWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int readParameterWordsWireFormat(byte[] buffer, int bufferIndex) {
++        fid = readInt2( buffer, bufferIndex );
++        bufferIndex += 2;
++        return 2;
++   }
++
++   @Override
++   int writeBytesWireFormat(byte[] dst, int dstIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int writeParameterWordsWireFormat(byte[] dst, int dstIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++}
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/SmbComWritePrintFile.java jcifs_1.3.17_print/src/jcifs/smb/SmbComWritePrintFile.java
+--- jcifs_1.3.17/src/jcifs/smb/SmbComWritePrintFile.java	1969-12-31 19:00:00.000000000 -0500
++++ jcifs_1.3.17_print/src/jcifs/smb/SmbComWritePrintFile.java	2012-09-14 06:19:15.037183100 -0400
+@@ -0,0 +1,54 @@
++package jcifs.smb;
++
++public class SmbComWritePrintFile extends ServerMessageBlock {
++
++   // File handle
++   /* USHORT */long fid;
++
++   // 0x01 -- Data block
++   /* UCHAR */long bufferFormat = 0x01;
++
++   // Length of data
++   /* USHORT */long dataLength;
++
++   // data
++   /* UCHAR */byte[] data;
++
++   public SmbComWritePrintFile(long fid, long datalength, byte[] data) {
++       this.fid = fid;
++       this.dataLength = datalength;
++       this.data = data;
++       command = SMB_COM_WRITE_PRINT_FILE;
++   }
++
++   @Override
++   int readBytesWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int readParameterWordsWireFormat(byte[] buffer, int bufferIndex) {
++       // TODO Auto-generated method stub
++       return 0;
++   }
++
++   @Override
++   int writeBytesWireFormat(byte[] dst, int dstIndex) {
++       int start = dstIndex;
++       dst[dstIndex++] = 0x01;
++       writeInt2(dataLength, dst, dstIndex);
++       dstIndex += 2;
++
++       System.arraycopy(data, 0, dst, dstIndex, data.length);
++       dstIndex += data.length;
++       return dstIndex - start;
++   }
++
++   @Override
++   int writeParameterWordsWireFormat(byte[] dst, int dstIndex) {
++       writeInt2(fid, dst, dstIndex);
++       return 2;
++   }
++
++}
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/SmbFile.java jcifs_1.3.17_print/src/jcifs/smb/SmbFile.java
+--- jcifs_1.3.17/src/jcifs/smb/SmbFile.java	2012-09-14 08:52:02.925556300 -0400
++++ jcifs_1.3.17_print/src/jcifs/smb/SmbFile.java	2012-09-14 06:25:52.915940400 -0400
+@@ -1007,6 +1007,22 @@
+         opened = true;
+         tree_num = tree.tree_num;
+     }
++
++    void print_open(String printJobName) throws SmbException {
++       connect0();
++
++       if (log.level >= 3)
++           log.println("print_open: unc=" + unc + ", printJobName="
++                   + printJobName);
++
++       SmbComOpenPrintFile request = new SmbComOpenPrintFile(printJobName);
++       SmbComOpenPrintFileResponse response = new SmbComOpenPrintFileResponse();
++       send(request, response);
++       fid = (int) response.fid;
++       opened = true;
++       tree_num = tree.tree_num;
++   }
++
+     boolean isOpen() {
+         boolean ans = opened && isConnected() && tree_num == tree.tree_num;
+         return ans;
+@@ -1019,8 +1035,12 @@
+         /*
+          * Close Request / Response
+          */
+-
++        if (this.type != TYPE_PRINTER) {
+         send( new SmbComClose( f, lastWriteTime ), blank_resp() );
++        } else {
++           SmbComClosePrintFile request = new SmbComClosePrintFile(this.fid);
++           send(request, blank_resp());
++       }
+     }
+     void close( long lastWriteTime ) throws SmbException {
+         if( isOpen() == false ) {
+@@ -2878,6 +2898,62 @@
+             }
+         }
+     }
++
++     /**
++    * Prints contents of the given inputstream to this printer. This method
++    * does not check if the input stream contains content that the printer will
++    * understand, e.g. user may send PCL content to a PostScript printer, and
++    * this method would not report an error. Since this method is sychronized,
++    * one must create different instances of SmbFile to send print jobs in
++    * parallel to the same printer multiple times. This approach is slow, but
++    * this method is a first step to a proper printer queue implementation in
++    * SmbFile.
++    * 
++    * @param input_stream
++    *            The InputStream to read from. It will be read and sent to
++    *            printer queue until its EOF.
++    * @param printJobName
++    *            The printJobName the print server associates with this job. It
++    *            is unique per client(??client is this SmbFile or this host??).
++    * @return Number of bytes sent to printer, or -1 if this file is not a
++    *         printer.
++    * @throws IOException
++    */
++   public synchronized int print(final InputStream input_stream, final String printJobName)
++           throws IOException {
++       if (getType() != TYPE_PRINTER) {
++           return -1;
++       }
++       int total = 0;
++       connect0();
++       if (tree.inDfs) {
++           /* At this point the maxBufferSize values are from the server
++            * exporting the volumes, not the one that we will actually
++            * end up performing IO with. If the server hosting the
++            * actual files has a smaller maxBufSize this could be
++            * incorrect. To handle this properly it is necessary
++            * to redirect the tree to the target server first before
++            * establishing buffer size. These exists() calls facilitate
++            * that.
++            */
++           exists();
++       }
++       print_open(printJobName);
++       int sndBufSize = tree.session.transport.snd_buf_size;
++ 
++       byte[] buf = new byte[sndBufSize <= 70 ? sndBufSize : sndBufSize - 70];
++       long numRead = input_stream.read(buf);
++       while (numRead != -1 && numRead != 0) {
++           SmbComWritePrintFile request = new SmbComWritePrintFile(this.fid,
++                   numRead, buf);
++           send(request, blank_resp());
++           total += numRead;
++           numRead = input_stream.read(buf);
++       }
++       close();
++       return total;
++   }
++
+ /**
+  * Return an array of Access Control Entry (ACE) objects representing
+  * the security descriptor associated with this file or directory.
+diff -Nuar jcifs_1.3.17/src/jcifs/smb/SmbTree.java jcifs_1.3.17_print/src/jcifs/smb/SmbTree.java
+--- jcifs_1.3.17/src/jcifs/smb/SmbTree.java	2012-09-14 08:52:03.005560900 -0400
++++ jcifs_1.3.17_print/src/jcifs/smb/SmbTree.java	2012-09-14 06:26:41.710731300 -0400
+@@ -83,6 +83,9 @@
+                 case ServerMessageBlock.SMB_COM_WRITE_ANDX:
+                 case ServerMessageBlock.SMB_COM_CLOSE:
+                 case ServerMessageBlock.SMB_COM_TREE_DISCONNECT:
++                case ServerMessageBlock.SMB_COM_OPEN_PRINT_FILE:
++                case ServerMessageBlock.SMB_COM_CLOSE_PRINT_FILE:
++                case ServerMessageBlock.SMB_COM_WRITE_PRINT_FILE:
+                     break;
+                 case ServerMessageBlock.SMB_COM_TRANSACTION:
+                 case ServerMessageBlock.SMB_COM_TRANSACTION2:
