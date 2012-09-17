@@ -1,0 +1,51 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>trideveloper</groupId>
+    <artifactId>tririga-print</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0</version>
+    <name>tririga-print</name>
+    <url>http://www.trideveloper.com</url>
+    <dependencies>
+<!-- Copy TririgaCustomTask.jar and TririgaBusinessConnect.jar
+     (from the "tools/BusinessConnect" subdirectory under your TRIRIGA
+     installation) into the "lib" subdirectory.
+     Then run the below to register the jars in your local Maven repository.
+-->
+<!--
+mvn install:install-file -DgroupId=tririga -DartifactId=tririga-custom-task -Dversion=1.0 -Dpackaging=jar -Dfile=lib/TririgaCustomTask.jar
+mvn install:install-file -DgroupId=tririga -DartifactId=tririga-business-connect -Dversion=1.0 -Dpackaging=jar -Dfile=lib/TririgaBusinessConnect.jar
+mvn install:install-file -DgroupId=jcifs -DartifactId=jcifs-print -Dversion=1.3.17 -Dpackaging=jar -Dfile=lib/jcifs-print-1.3.17.jar
+-->
+        <dependency>
+            <groupId>tririga</groupId>
+            <artifactId>tririga-custom-task</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>tririga</groupId>
+            <artifactId>tririga-business-connect</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jcifs</groupId>
+            <artifactId>jcifs-print</artifactId>
+            <version>1.3.17</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <finalName>tririga-print</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
