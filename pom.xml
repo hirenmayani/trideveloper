@@ -12,5 +12,6 @@
         <module>exhibit</module>
         <module>logreader</module>
         <module>triftp</module>
+        <module>tririga-print</module>
     </modules>
 </project>
